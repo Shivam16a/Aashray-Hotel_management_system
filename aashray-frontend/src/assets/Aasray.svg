@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F6D365"/>
+      <stop offset="100%" stop-color="#B8862B"/>
+    </linearGradient>
+
+    <linearGradient id="blue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#17466A"/>
+      <stop offset="100%" stop-color="#081F33"/>
+    </linearGradient>
+
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8"
+                    flood-color="#000" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Outer emblem -->
+  <circle cx="200" cy="200" r="175"
+          fill="url(#blue)" filter="url(#shadow)"/>
+
+  <circle cx="200" cy="200" r="158"
+          fill="none"
+          stroke="url(#gold)"
+          stroke-width="7"/>
+
+  <!-- Roof / A shape -->
+  <path d="M105 188 L200 92 L295 188"
+        fill="none"
+        stroke="url(#gold)"
+        stroke-width="15"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Hotel building -->
+  <path d="M125 177 H275 V290 H125 Z"
+        fill="#F8F5EE"
+        stroke="url(#gold)"
+        stroke-width="7"/>
+
+  <!-- Central entrance -->
+  <path d="M180 290 V230
+           C180 211 220 211 220 230
+           V290 Z"
+        fill="url(#gold)"/>
+
+  <!-- Windows -->
+  <rect x="145" y="205" width="22" height="30" rx="3"
+        fill="#17466A"/>
+  <rect x="233" y="205" width="22" height="30" rx="3"
+        fill="#17466A"/>
+
+  <!-- Balcony -->
+  <path d="M130 255 H270"
+        stroke="#17466A"
+        stroke-width="7"
+        stroke-linecap="round"/>
+
+  <!-- Decorative roof detail -->
+  <circle cx="200" cy="92" r="8" fill="url(#gold)"/>
+
+  <!-- Small accent diamonds -->
+  <path d="M78 200 l10 -10 l10 10 l-10 10 Z" fill="url(#gold)"/>
+  <path d="M302 200 l10 -10 l10 10 l-10 10 Z" fill="url(#gold)"/>
+</svg>
