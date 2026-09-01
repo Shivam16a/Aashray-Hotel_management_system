@@ -63,7 +63,7 @@
       <p align="left"><em>One-time unique <code>ASH-XXXX</code> departure codes for fraud-free guest status updates.</em></p>
     </td>
     <td width="50%" align="center">
-      <img src="https://images.unsplash.com/photo-1556742049-0a67e55722c6?auto=format&fit=crop&w=800&q=80" alt="Instant Razorpay" width="100%" style="border-radius: 8px;" />
+      <img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=800&q=80" alt="Instant Razorpay Vault" width="100%" style="border-radius: 8px;" />
       <br/>
       <strong>💳 Razorpay Cryptographic Vault</strong>
       <p align="left"><em>Server-side HMAC-SHA256 signature verification and auto-generated PDF vouchers.</em></p>
