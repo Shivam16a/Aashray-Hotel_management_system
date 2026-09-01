@@ -6,19 +6,21 @@ const protect = async (req, res, next) => {
     try {
         let token;
 
-        // 1. Check HTTP-Only Cookie or Authorization Header
-        if (req.cookies && req.cookies.accessToken) {
-            token = req.cookies.accessToken;
-        } else if (
+        // 1. Prioritize Authorization Header first (best for cross-domain / Render deployments)
+        if (
             req.headers.authorization &&
             req.headers.authorization.startsWith("Bearer")
         ) {
             token = req.headers.authorization.split(" ")[1];
         }
+        // 2. Fallback to HTTP-Only Cookie
+        else if (req.cookies && req.cookies.accessToken) {
+            token = req.cookies.accessToken;
+        }
 
         // Token missing check
         if (!token) {
-            if (req.path === "/me") {
+            if (req.path === "/me" || req.baseUrl?.includes("/auth/me")) {
                 req.user = null;
                 return next();
             }
@@ -32,17 +34,15 @@ const protect = async (req, res, next) => {
         const secret = process.env.JWT_SECRET || "aashray_jwt_super_secure_fallback_key_2026";
         const decoded = jwt.verify(token, secret);
 
-        // Handles both decoded.id and decoded.userId
         const targetId = decoded.id || decoded.userId;
 
-        // Note: isBlocked ko select me add kiya gaya hai
         const user = await User.findById(targetId).select(
             "_id username email phone role isVerified isBlocked createdAt"
         );
 
         if (!user) {
             req.user = null;
-            if (req.path === "/me") return next();
+            if (req.path === "/me" || req.baseUrl?.includes("/auth/me")) return next();
             return res.status(401).json({
                 success: false,
                 message: "User account no longer exists.",
@@ -61,7 +61,7 @@ const protect = async (req, res, next) => {
         next();
     } catch (error) {
         req.user = null;
-        if (req.path === "/me") return next();
+        if (req.path === "/me" || req.baseUrl?.includes("/auth/me")) return next();
 
         return res.status(401).json({
             success: false,
