@@ -1,6 +1,9 @@
 <div align="center">
 
-  <img src="https://capsule-render.vercel.app/render?type=waving&color=gradient&customColorList=0,2,20&height=200&section=header&text=AASHRAY&fontSize=70&fontColor=00f0ff&animation=twinkling&desc=Full-Stack%20Verified%20Luxury%20Hospitality%20Portal&descSize=20&descAlignY=70&descAlign=50" alt="Aashray Banner" width="100%" />
+  <!-- Animated SVG Typing Header -->
+  <a href="https://git.io/typing-svg">
+    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=40&duration=3000&pause=1000&color=00F0FF&center=true&vCenter=true&width=750&height=90&lines=AASHRAY+PORTAL;FULL-STACK+HOTEL+MANAGEMENT;REAL-TIME+DEPARTURE+LEDGER;VERIFIED+GUEST+REVIEWS" alt="Typing SVG" />
+  </a>
 
   <br/>
 
@@ -34,6 +37,42 @@
 </div>
 
 ---
+
+## 📸 Visual Tour & Feature Showcase
+
+<table align="center" width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80" alt="Sanctuary Explorer" width="100%" style="border-radius: 8px;" />
+      <br/>
+      <strong>🏨 Dynamic Sanctuary Discovery</strong>
+      <p align="left"><em>Real-time filtering by price, guest density, and amenities with verified visual galleries.</em></p>
+    </td>
+    <td width="50%" align="center">
+      <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80" alt="Admin Control Room" width="100%" style="border-radius: 8px;" />
+      <br/>
+      <strong>🛡️ Mission Control Admin Room</strong>
+      <p align="left"><em>Live desk metrics, inventory management, and guest departure authorization desk.</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=800&q=80" alt="Instant Checkout Passes" width="100%" style="border-radius: 8px;" />
+      <br/>
+      <strong>🔑 Cryptographic Departure Keys</strong>
+      <p align="left"><em>One-time unique <code>ASH-XXXX</code> departure codes for fraud-free guest status updates.</em></p>
+    </td>
+    <td width="50%" align="center">
+      <img src="https://images.unsplash.com/photo-1556742049-0a67e55722c6?auto=format&fit=crop&w=800&q=80" alt="Instant Razorpay" width="100%" style="border-radius: 8px;" />
+      <br/>
+      <strong>💳 Razorpay Cryptographic Vault</strong>
+      <p align="left"><em>Server-side HMAC-SHA256 signature verification and auto-generated PDF vouchers.</em></p>
+    </td>
+  </tr>
+</table>
+
+---
+
 
 ## ⚡ Core Capabilities
 
