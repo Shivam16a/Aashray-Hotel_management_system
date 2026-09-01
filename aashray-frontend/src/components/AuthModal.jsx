@@ -25,7 +25,7 @@ const AuthModal = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const { setUser } = useAuth();
+    const { setUser, loginStateSync } = useAuth();
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -45,9 +45,29 @@ const AuthModal = () => {
             });
 
             if (res.data && res.data.success) {
-                setUser(res.data.user);
+                const { user, token } = res.data;
+
+                // 1. Store token & user in LocalStorage for Authorization Header Interceptor
+                if (token) localStorage.setItem('token', token);
+                if (user) localStorage.setItem('user', JSON.stringify(user));
+
+                // 2. Sync AuthContext state
+                if (loginStateSync) {
+                    loginStateSync(user, token);
+                } else {
+                    setUser(user);
+                }
+
                 setStatusMessage({ type: 'success', text: 'Login successful! Redirecting...' });
-                setTimeout(() => navigate('/dashboard', { replace: true }), 500);
+
+                // 3. Smart role-based redirect
+                setTimeout(() => {
+                    if (user?.role === 'Admin' || user?.role === 'Owner') {
+                        navigate('/admin', { replace: true });
+                    } else {
+                        navigate('/dashboard', { replace: true });
+                    }
+                }, 400);
             }
         } catch (err) {
             setStatusMessage({
@@ -86,7 +106,10 @@ const AuthModal = () => {
         try {
             const res = await verifyOTP({ email: formData.email, otp: formData.otp });
             setStatusMessage({ type: 'success', text: res.data.message });
-            setTimeout(() => setView('login'), 1500);
+            setTimeout(() => {
+                setView('login');
+                setStatusMessage({ type: '', text: '' });
+            }, 1500);
         } catch (err) {
             setStatusMessage({
                 type: 'danger',

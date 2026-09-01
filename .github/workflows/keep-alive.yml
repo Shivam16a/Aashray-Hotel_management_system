@@ -2,10 +2,10 @@ name: Keep-Alive Server & Database Ping
 
 on:
   schedule:
-  # Runs every 14 minutes (Render spins down after 15 minutes of inactivity)
-  - cron: '*/14 * * * *'
+  # Daily at 12:00 PM IST (06:30 AM UTC)
+  - cron: '30 6 * * *'
   workflow_dispatch:
-    # Allows manual trigger from GitHub UI anytime
+    # Manual trigger support from GitHub Actions UI
 
 jobs:
   ping-server:
@@ -19,8 +19,8 @@ jobs:
           exit 1
         fi
 
-        echo "⚡ Sending keep-alive heartbeat to $BACKEND_URL/health ..."
-        HTTP_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 25 "$BACKEND_URL/health")
+        echo "⚡ Sending scheduled heartbeat to $BACKEND_URL/health ..."
+        HTTP_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$BACKEND_URL/health")
 
         if [ "$HTTP_RESPONSE" -eq 200 ]; then
           echo "✅ Heartbeat Success: Status 200 OK (Server & DB Active)"
