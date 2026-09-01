@@ -1,6 +1,3 @@
-Yeh poora complete content hai. UI parsing issues se bachne ke liye code fences ko plain text me rakha gaya hai taaki kuch bhi beech me cut na ho:
-
-```markdown
 <div align="center">
 
   <img src="https://capsule-render.vercel.app/render?type=waving&color=gradient&customColorList=0,2,20&height=200&section=header&text=AASHRAY&fontSize=70&fontColor=00f0ff&animation=twinkling&desc=Full-Stack%20Verified%20Luxury%20Hospitality%20Portal&descSize=20&descAlignY=70&descAlign=50" alt="Aashray Banner" width="100%" />
@@ -152,5 +149,3 @@ on:
 <div align="center">
   <sub>Built with ❤️ by the Aashray Engineering Team. Licensed under the MIT License.</sub>
 </div>
-
-```
