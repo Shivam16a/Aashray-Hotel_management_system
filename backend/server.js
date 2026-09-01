@@ -70,6 +70,24 @@ app.use("/api/auth/verify-otp", sensitiveAuthLimiter);
 app.use("/api/auth/forgot-password", sensitiveAuthLimiter);
 app.use("/api/auth/reset-password", sensitiveAuthLimiter);
 
+// =========================================
+// Backend Helth_check Route
+// =========================================
+// backend/server.js
+app.get("/health", async (req, res) => {
+    try {
+        // Ping database state
+        const dbState = mongoose.connection.readyState;
+        return res.status(200).json({
+            status: "active",
+            dbConnected: dbState === 1,
+            timestamp: new Date().toISOString(),
+        });
+    } catch (err) {
+        return res.status(500).json({ status: "error", message: err.message });
+    }
+});
+
 // ==========================================
 // 5. STRICT CORS & SOCKET.IO SETUP
 // ==========================================
