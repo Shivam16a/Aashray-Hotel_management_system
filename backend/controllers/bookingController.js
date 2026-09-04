@@ -1,9 +1,14 @@
 // backend/controllers/bookingController.js
 const Booking = require("../models/Booking");
 const Hotel = require("../models/Hotel");
-const nodemailer = require("nodemailer");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
+const axios = require("axios"); // 🚀 Nodemailer hata kar axios Brevo API engine
+
+// ==========================================
+// CONFIGURATION & CLIENT BASE
+// ==========================================
+const CLIENT_BASE = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/+$/, "");
 
 // ==========================================
 // RAZORPAY INSTANCE
@@ -14,16 +19,32 @@ const razorpayInstance = new Razorpay({
 });
 
 // ==========================================
-// EMAIL TRANSPORTER
+// BREVO REST API EMAIL DISPATCHER (HTTPS Port 443)
 // ==========================================
-const createTransporter = () => {
-    return nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL,
-            pass: process.env.EMAIL_PASSWORD,
-        },
-    });
+const sendAashrayEmail = async ({ to, subject, html }) => {
+    const senderEmail = process.env.SENDER_EMAIL || process.env.EMAIL || "support@aashray.com";
+
+    try {
+        const response = await axios.post(
+            "https://api.brevo.com/v3/smtp/email",
+            {
+                sender: { name: "Aashray Hospitality", email: senderEmail },
+                to: [{ email: to }],
+                subject,
+                htmlContent: html,
+            },
+            {
+                headers: {
+                    "api-key": process.env.BREVO_API_KEY,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Brevo Dispatch Error:", error.response?.data || error.message);
+        throw new Error(error.response?.data?.message || "Failed to dispatch booking confirmation email");
+    }
 };
 
 // ==========================================
@@ -171,29 +192,44 @@ exports.verifyPaymentAndBook = async (req, res) => {
             io.to(`user_${req.user._id}`).emit("booking-confirmed", populatedBooking);
         }
 
-        // Send Email Confirmation
+        // 🚀 Send Confirmation via Brevo REST API
         try {
-            const transporter = createTransporter();
             const emailHtml = `
-                <div style="font-family: Arial, sans-serif; background-color: #060913; color: #ffffff; padding: 25px; border-radius: 12px; border: 1px solid #00f0ff; max-width: 600px; margin: auto;">
-                    <h2 style="color: #00f0ff; margin-bottom: 5px;">⚡ Aashray Booking Confirmation</h2>
-                    <p style="color: #94a3b8; font-size: 14px;">Your payment of <strong>₹${totalPrice}</strong> was verified and confirmed!</p>
-                    <div style="background-color: #0d1322; padding: 18px; border-radius: 10px; margin: 15px 0;">
-                        <h3 style="color: #ffffff; margin-top: 0;">${hotel.name}</h3>
-                        <p style="color: #94a3b8; margin: 4px 0;"><strong>Payment ID:</strong> ${razorpay_payment_id}</p>
-                        <p style="color: #94a3b8; margin: 4px 0;"><strong>Check-In:</strong> ${checkIn.toDateString()}</p>
-                        <p style="color: #94a3b8; margin: 4px 0;"><strong>Check-Out:</strong> ${checkOut.toDateString()}</p>
-                        <p style="color: #00f0ff; font-size: 18px; margin: 10px 0 0 0;"><strong>Total Paid:</strong> ₹${totalPrice}</p>
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #060913; color: #ffffff; padding: 30px; border-radius: 16px; border: 1px solid #1e293b; max-width: 600px; margin: auto;">
+                    <div style="border-bottom: 1px solid #1e293b; padding-bottom: 16px; margin-bottom: 20px;">
+                        <span style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px;">Aashray<span style="color: #00f0ff;"> Sanctuary</span></span>
                     </div>
-                    <div style="text-align: center; background: rgba(0, 240, 255, 0.08); padding: 16px; border-radius: 10px; border: 1px dashed #00f0ff; margin: 18px 0;">
-                        <span style="font-size: 12px; color: #94a3b8; text-transform: uppercase;">Checkout Security Pass</span>
-                        <div style="font-size: 28px; font-weight: bold; color: #00f0ff; letter-spacing: 4px; margin-top: 6px;">${checkoutCode}</div>
+                    
+                    <h2 style="color: #00f0ff; margin-bottom: 8px; font-size: 20px;">⚡ Booking Confirmed!</h2>
+                    <p style="color: #94a3b8; font-size: 14px; margin-top: 0;">Hello <strong>${req.user.username || "Guest"}</strong>, your payment of <strong>₹${totalPrice}</strong> was verified.</p>
+                    
+                    <div style="background-color: #0f172a; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #334155;">
+                        <h3 style="color: #ffffff; margin-top: 0; font-size: 18px;">${hotel.name}</h3>
+                        <p style="color: #94a3b8; margin: 6px 0; font-size: 13px;"><strong>Payment ID:</strong> <span style="font-family: monospace; color: #e2e8f0;">${razorpay_payment_id}</span></p>
+                        <p style="color: #94a3b8; margin: 6px 0; font-size: 13px;"><strong>Check-In:</strong> ${checkIn.toDateString()}</p>
+                        <p style="color: #94a3b8; margin: 6px 0; font-size: 13px;"><strong>Check-Out:</strong> ${checkOut.toDateString()}</p>
+                        <p style="color: #94a3b8; margin: 6px 0; font-size: 13px;"><strong>Guests:</strong> ${guestsCount || 1}</p>
+                        <p style="color: #00f0ff; font-size: 17px; margin: 12px 0 0 0; font-weight: bold;">Total Paid: ₹${totalPrice}</p>
                     </div>
+
+                    <div style="text-align: center; background: rgba(0, 240, 255, 0.05); padding: 20px; border-radius: 12px; border: 1px dashed #00f0ff; margin: 24px 0;">
+                        <span style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">Checkout Security Pass</span>
+                        <div style="font-size: 32px; font-weight: 800; color: #00f0ff; letter-spacing: 6px; margin-top: 6px; font-family: monospace;">${checkoutCode}</div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 25px;">
+                        <a href="${CLIENT_BASE}/bookings" style="background: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%); color: #020617; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 13px; display: inline-block;">
+                            View Booking Details →
+                        </a>
+                    </div>
+                    
+                    <p style="margin: 25px 0 0; color: #475569; font-size: 11px; text-align: center; border-top: 1px solid #1e293b; padding-top: 14px;">
+                        © 2026 Aashray Hospitality Network. Automated Reservation Dispatch.
+                    </p>
                 </div>
             `;
 
-            await transporter.sendMail({
-                from: `"Aashray Hospitality Network" <${process.env.EMAIL}>`,
+            await sendAashrayEmail({
                 to: req.user.email,
                 subject: `Booking Confirmed: ${hotel.name} [Pass: ${checkoutCode}]`,
                 html: emailHtml,
