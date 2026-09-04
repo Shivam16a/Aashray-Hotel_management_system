@@ -2,6 +2,17 @@ const axios = require("axios");
 
 const sendEmail = async (email, otp) => {
     const senderEmail = process.env.SENDER_EMAIL || process.env.EMAIL;
+    const apiKey = process.env.BREVO_API_KEY?.trim();
+
+    if (!apiKey) {
+        console.error("❌ CRITICAL: BREVO_API_KEY is missing in environment variables!");
+        throw new Error("Server configuration error: Email API key missing");
+    }
+
+    if (!senderEmail) {
+        console.error("❌ CRITICAL: SENDER_EMAIL is missing in environment variables!");
+        throw new Error("Server configuration error: Sender email missing");
+    }
 
     const otpHtml = `
     <!DOCTYPE html>
@@ -48,15 +59,15 @@ const sendEmail = async (email, otp) => {
             {
                 sender: {
                     name: "Verification Service",
-                    email: senderEmail
+                    email: senderEmail.trim()
                 },
-                to: [{ email }],
+                to: [{ email: email.trim() }],
                 subject: "Your Email Verification OTP",
                 htmlContent: otpHtml,
             },
             {
                 headers: {
-                    "api-key": process.env.BREVO_API_KEY,
+                    "api-key": apiKey,
                     "Content-Type": "application/json",
                 },
             }
