@@ -1,9 +1,29 @@
 // backend/utils/sendEmail.js
-const { Resend } = require('resend');
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+const nodemailer = require("nodemailer");
 
 const sendEmail = async (email, otp) => {
+    const emailUser = process.env.EMAIL_USER || process.env.EMAIL;
+    const emailPass = process.env.EMAIL_PASS;
+
+    if (!emailUser || !emailPass) {
+        console.error("❌ CRITICAL: EMAIL_USER or EMAIL_PASS missing in .env!");
+        throw new Error("Server configuration error: Email credentials missing");
+    }
+
+    // Gmail SMTP Transporter with Port 587 (Render-friendly)
+    const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // TLS upgrade
+        auth: {
+            user: emailUser.trim(),
+            pass: emailPass.replace(/\s+/g, ""), // Removes spaces
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    });
+
     const otpHtml = `
     <!DOCTYPE html>
     <html>
@@ -15,7 +35,7 @@ const sendEmail = async (email, otp) => {
                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 500px; background-color: #0d1322; border-radius: 14px; border: 1px solid #1e293b; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
                         <tr>
                             <td style="padding: 24px 28px; border-bottom: 1px solid #1e293b; text-align: center;">
-                                <span style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px;">Account <span style="color: #00f0ff;">Security</span></span>
+                                <span style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px;">Aashray <span style="color: #00f0ff;">Security</span></span>
                             </td>
                         </tr>
                         <tr>
@@ -44,23 +64,18 @@ const sendEmail = async (email, otp) => {
     `;
 
     try {
-        const { data, error } = await resend.emails.send({
-            from: 'Aashray Security <onboarding@resend.dev>', // Resend ka default testing sender (instant work karta hai bina domain verify kiye)
-            to: [email.trim()],
-            subject: 'Aashray Email Verification OTP',
+        const info = await transporter.sendMail({
+            from: `"Aashray Portal" <${emailUser.trim()}>`,
+            to: email.trim(),
+            subject: "Your Email Verification OTP - Aashray",
             html: otpHtml,
         });
 
-        if (error) {
-            console.error('❌ Resend API Error:', error);
-            throw new Error(error.message || 'Failed to dispatch verification OTP');
-        }
-
-        console.log('✅ OTP Sent via Resend API! ID:', data.id);
-        return data;
-    } catch (err) {
-        console.error('❌ Email Dispatch Exception:', err.message);
-        throw new Error(err.message || 'Email service error');
+        console.log("✅ OTP Sent via Gmail SMTP to:", email, "MessageId:", info.messageId);
+        return info;
+    } catch (error) {
+        console.error("❌ Gmail SMTP Error:", error.message);
+        throw new Error("Failed to dispatch verification OTP: " + error.message);
     }
 };
 
