@@ -1,30 +1,19 @@
 // backend/utils/sendEmail.js
-const nodemailer = require("nodemailer");
+const axios = require("axios");
 
 const sendEmail = async (email, otp) => {
-    const emailUser = process.env.EMAIL_USER || process.env.EMAIL;
-    const emailPass = process.env.EMAIL_PASS;
+    const senderEmail = process.env.SENDER_EMAIL || process.env.EMAIL;
+    const apiKey = process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.trim() : null;
 
-    if (!emailUser || !emailPass) {
-        console.error("❌ CRITICAL: EMAIL_USER or EMAIL_PASS missing in .env!");
-        throw new Error("Server configuration error: Email credentials missing");
+    if (!apiKey) {
+        console.error("❌ CRITICAL: BREVO_API_KEY is missing in environment variables!");
+        throw new Error("Server configuration error: Email API key missing");
     }
 
-    // Force IPv4 & SSL to prevent ENETUNREACH on Render
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        family: 4, // 🚀 ENETUNREACH fix: Strictly use IPv4
-        auth: {
-            user: emailUser.trim(),
-            pass: emailPass.replace(/\s+/g, ""),
-        },
-        tls: {
-            rejectUnauthorized: false
-        }
-    });
+    if (!senderEmail) {
+        console.error("❌ CRITICAL: SENDER_EMAIL is missing in environment variables!");
+        throw new Error("Server configuration error: Sender email missing");
+    }
 
     const otpHtml = `
     <!DOCTYPE html>
@@ -37,13 +26,13 @@ const sendEmail = async (email, otp) => {
                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 500px; background-color: #0d1322; border-radius: 14px; border: 1px solid #1e293b; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
                         <tr>
                             <td style="padding: 24px 28px; border-bottom: 1px solid #1e293b; text-align: center;">
-                                <span style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px;">Aashray <span style="color: #00f0ff;">Security</span></span>
+                                <span style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px;">Account <span style="color: #00f0ff;">Security</span></span>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding: 32px 28px; text-align: center;">
                                 <h2 style="margin: 0 0 8px; color: #ffffff; font-size: 20px;">Email Verification Code</h2>
-                                <p style="margin: 0 0 24px; color: #94a3b8; font-size: 14px;">Use this one-time security pass to complete your registration.</p>
+                                <p style="margin: 0 0 24px; color: #94a3b8; font-size: 14px;">Use this one-time security pass to authorize your action.</p>
                                 
                                 <div style="display: inline-block; background-color: rgba(0, 240, 255, 0.08); border: 1px dashed #00f0ff; border-radius: 12px; padding: 14px 36px; margin-bottom: 24px;">
                                     <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #00f0ff; font-family: monospace;">${otp}</span>
@@ -54,7 +43,7 @@ const sendEmail = async (email, otp) => {
                         </tr>
                         <tr>
                             <td style="padding: 16px; background-color: #080c18; border-top: 1px solid #1e293b; text-align: center;">
-                                <p style="margin: 0; color: #475569; font-size: 11px;">© 2026 Aashray Hospitality Network. Automated Security Notification.</p>
+                                <p style="margin: 0; color: #475569; font-size: 11px;">© 2026 Aashray Hospitality Network. Automated Service Notification.</p>
                             </td>
                         </tr>
                     </table>
@@ -66,18 +55,31 @@ const sendEmail = async (email, otp) => {
     `;
 
     try {
-        const info = await transporter.sendMail({
-            from: `"Aashray Portal" <${emailUser.trim()}>`,
-            to: email.trim(),
-            subject: "Your Email Verification OTP - Aashray",
-            html: otpHtml,
-        });
+        const response = await axios.post(
+            "https://api.brevo.com/v3/smtp/email",
+            {
+                sender: {
+                    name: "Aashray Verification",
+                    email: senderEmail.trim()
+                },
+                to: [{ email: email.trim() }],
+                subject: "Aashray Email Verification OTP",
+                htmlContent: otpHtml,
+            },
+            {
+                headers: {
+                    "api-key": apiKey,
+                    "Content-Type": "application/json",
+                    "accept": "application/json"
+                },
+            }
+        );
 
-        console.log("✅ OTP Sent via Gmail IPv4! MessageId:", info.messageId);
-        return info;
+        console.log("✅ Brevo OTP Sent Successfully! MessageId:", response.data?.messageId);
+        return response.data;
     } catch (error) {
-        console.error("❌ Gmail SMTP Error:", error.message);
-        throw new Error("Failed to dispatch verification OTP: " + error.message);
+        console.error("❌ Brevo OTP Send Error:", error.response?.data || error.message);
+        throw new Error(error.response?.data?.message || "Failed to dispatch verification OTP");
     }
 };
 
