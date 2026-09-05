@@ -10,14 +10,16 @@ const sendEmail = async (email, otp) => {
         throw new Error("Server configuration error: Email credentials missing");
     }
 
-    // Gmail SMTP Transporter with Port 587 (Render-friendly)
+    // Force IPv4 & SSL to prevent ENETUNREACH on Render
     const transporter = nodemailer.createTransport({
+        service: "gmail",
         host: "smtp.gmail.com",
-        port: 587,
-        secure: false, // TLS upgrade
+        port: 465,
+        secure: true,
+        family: 4, // 🚀 ENETUNREACH fix: Strictly use IPv4
         auth: {
             user: emailUser.trim(),
-            pass: emailPass.replace(/\s+/g, ""), // Removes spaces
+            pass: emailPass.replace(/\s+/g, ""),
         },
         tls: {
             rejectUnauthorized: false
@@ -71,7 +73,7 @@ const sendEmail = async (email, otp) => {
             html: otpHtml,
         });
 
-        console.log("✅ OTP Sent via Gmail SMTP to:", email, "MessageId:", info.messageId);
+        console.log("✅ OTP Sent via Gmail IPv4! MessageId:", info.messageId);
         return info;
     } catch (error) {
         console.error("❌ Gmail SMTP Error:", error.message);
