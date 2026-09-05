@@ -1,19 +1,9 @@
-const axios = require("axios");
+// backend/utils/sendEmail.js
+const { Resend } = require('resend');
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (email, otp) => {
-    const senderEmail = process.env.SENDER_EMAIL || process.env.EMAIL;
-    const apiKey = process.env.BREVO_API_KEY?.trim();
-
-    if (!apiKey) {
-        console.error("❌ CRITICAL: BREVO_API_KEY is missing in environment variables!");
-        throw new Error("Server configuration error: Email API key missing");
-    }
-
-    if (!senderEmail) {
-        console.error("❌ CRITICAL: SENDER_EMAIL is missing in environment variables!");
-        throw new Error("Server configuration error: Sender email missing");
-    }
-
     const otpHtml = `
     <!DOCTYPE html>
     <html>
@@ -31,7 +21,7 @@ const sendEmail = async (email, otp) => {
                         <tr>
                             <td style="padding: 32px 28px; text-align: center;">
                                 <h2 style="margin: 0 0 8px; color: #ffffff; font-size: 20px;">Email Verification Code</h2>
-                                <p style="margin: 0 0 24px; color: #94a3b8; font-size: 14px;">Use this one-time security pass to authorize your action.</p>
+                                <p style="margin: 0 0 24px; color: #94a3b8; font-size: 14px;">Use this one-time security pass to complete your registration.</p>
                                 
                                 <div style="display: inline-block; background-color: rgba(0, 240, 255, 0.08); border: 1px dashed #00f0ff; border-radius: 12px; padding: 14px 36px; margin-bottom: 24px;">
                                     <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #00f0ff; font-family: monospace;">${otp}</span>
@@ -42,7 +32,7 @@ const sendEmail = async (email, otp) => {
                         </tr>
                         <tr>
                             <td style="padding: 16px; background-color: #080c18; border-top: 1px solid #1e293b; text-align: center;">
-                                <p style="margin: 0; color: #475569; font-size: 11px;">© 2026 Cloud Security Dispatch. Automated Service Notification.</p>
+                                <p style="margin: 0; color: #475569; font-size: 11px;">© 2026 Aashray Hospitality Network. Automated Security Notification.</p>
                             </td>
                         </tr>
                     </table>
@@ -54,29 +44,23 @@ const sendEmail = async (email, otp) => {
     `;
 
     try {
-        const response = await axios.post(
-            "https://api.brevo.com/v3/smtp/email",
-            {
-                sender: {
-                    name: "Verification Service",
-                    email: senderEmail.trim()
-                },
-                to: [{ email: email.trim() }],
-                subject: "Your Email Verification OTP",
-                htmlContent: otpHtml,
-            },
-            {
-                headers: {
-                    "api-key": apiKey,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+        const { data, error } = await resend.emails.send({
+            from: 'Aashray Security <onboarding@resend.dev>', // Resend ka default testing sender (instant work karta hai bina domain verify kiye)
+            to: [email.trim()],
+            subject: 'Aashray Email Verification OTP',
+            html: otpHtml,
+        });
 
-        return response.data;
-    } catch (error) {
-        console.error("Brevo OTP Send Error:", error.response?.data || error.message);
-        throw new Error(error.response?.data?.message || "Failed to dispatch verification OTP");
+        if (error) {
+            console.error('❌ Resend API Error:', error);
+            throw new Error(error.message || 'Failed to dispatch verification OTP');
+        }
+
+        console.log('✅ OTP Sent via Resend API! ID:', data.id);
+        return data;
+    } catch (err) {
+        console.error('❌ Email Dispatch Exception:', err.message);
+        throw new Error(err.message || 'Email service error');
     }
 };
 
