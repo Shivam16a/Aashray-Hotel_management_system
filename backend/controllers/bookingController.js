@@ -218,7 +218,7 @@ exports.verifyPaymentAndBook = async (req, res) => {
                     </div>
 
                     <div style="text-align: center; margin-top: 25px;">
-                        <a href="${CLIENT_BASE}/bookings" style="background: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%); color: #020617; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 13px; display: inline-block;">
+                        <a href="${CLIENT_BASE}/login" style="background: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%); color: #020617; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 700; font-size: 13px; display: inline-block;">
                             View Booking Details →
                         </a>
                     </div>
