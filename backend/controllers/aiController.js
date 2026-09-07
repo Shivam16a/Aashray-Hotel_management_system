@@ -101,8 +101,7 @@ exports.chatWithAssistant = async (req, res) => {
         // Gemini API Check
         const geminiKey = process.env.GEMINI_API_KEY;
         if (geminiKey && geminiKey.trim().length > 10) {
-            try {
-                const prompt = `${SYSTEM_INSTRUCTION}
+            const prompt = `${SYSTEM_INSTRUCTION}
 
 CURRENT LIVE PROPERTIES ON AASHRAY PORTAL:
 ${JSON.stringify(liveHotels, null, 2)}
@@ -111,28 +110,46 @@ USER INQUIRY: "${message}"
 
 RESPONSE:`;
 
-                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`;
-                const response = await axios.post(
-                    geminiUrl,
-                    { contents: [{ parts: [{ text: prompt }] }] },
-                    { headers: { "Content-Type": "application/json" }, timeout: 9000 }
-                );
+            // Models sequence: primary busy hone par auto-switch hoga
+            const models = [
+                "gemini-3.6-flash",
+                "gemini-2.5-flash",
+                "gemini-1.5-flash"
+            ];
 
-                const aiReply = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (aiReply) {
-                    return res.status(200).json({
-                        success: true,
-                        reply: aiReply.trim()
-                    });
+            for (const model of models) {
+                try {
+                    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+
+                    const response = await axios.post(
+                        geminiUrl,
+                        { contents: [{ parts: [{ text: prompt }] }] },
+                        { headers: { "Content-Type": "application/json" }, timeout: 9000 }
+                    );
+
+                    const aiReply = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (aiReply) {
+                        return res.status(200).json({
+                            success: true,
+                            reply: aiReply.trim()
+                        });
+                    }
+                } catch (apiErr) {
+                    const statusCode = apiErr.response?.status;
+                    const errorMsg = apiErr.response?.data?.error?.message || apiErr.message;
+                    console.warn(`⚠️ [GEMINI API ${model} FAILED]: ${errorMsg}`);
+
+                    // Agar error 503 (High Demand) ya 429 (Rate Limit) hai to next model try karega
+                    if (statusCode === 503 || statusCode === 429) {
+                        continue;
+                    }
                 }
-            } catch (apiErr) {
-                console.error("⚠️ [GEMINI API CALL FAILED]:", apiErr.response?.data?.error?.message || apiErr.message);
             }
         } else {
             console.warn("⚠️ [GEMINI_API_KEY MISSING OR SHORT IN .env]");
         }
 
-        // Intelligent Deterministic Fallback Engine
+        // Intelligent Deterministic Fallback Engine (agar saare models fail ho jayein)
         const fallbackReply = getIntelligentFallbackResponse(message, liveHotels);
         return res.status(200).json({
             success: true,
