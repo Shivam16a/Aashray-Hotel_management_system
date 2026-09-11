@@ -120,9 +120,10 @@
 * Razorpay API Test Keys
 
 ### 2. Repository Setup
-git clone https://github.com/your-username/aashray-hotel-management.git
+```git clone
+https://github.com/Shivam16a/Aashray-Hotel_management_system
 cd aashray-hotel-management
-
+```
 ### 3. Backend Configuration
 cd backend
 npm install
