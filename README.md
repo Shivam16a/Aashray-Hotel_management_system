@@ -125,10 +125,12 @@ https://github.com/Shivam16a/Aashray-Hotel_management_system
 cd aashray-hotel-management
 ```
 ### 3. Backend Configuration
+```
 cd backend
 npm install
-
+```
 Create a `.env` file in the `backend` directory:
+```
 PORT=5652
 NODE_ENV=development
 MONGO_URI=your_mongodb_connection_string
@@ -139,20 +141,22 @@ RAZORPAY_KEY_ID=your_razorpay_key_id
 RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_password
-
+```
+```
 Start backend:
 npm run dev
-
+```
 ### 4. Frontend Configuration
+```
 cd ../aashray-frontend
 npm install
-
+```
 Create a `.env` file in the `aashray-frontend` directory:
 VITE_BACKEND_URL=http://localhost:5652
-
+```
 Start frontend:
 npm run dev
-
+```
 ---
 
 ## 📡 API Reference Overview
@@ -187,5 +191,5 @@ on:
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by the Aashray Engineering Team. Licensed under the MIT License.</sub>
+  <sub>Built with ❤️ by the shivam. </sub>
 </div>
